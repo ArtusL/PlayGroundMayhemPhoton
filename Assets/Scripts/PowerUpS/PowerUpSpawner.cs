@@ -2,59 +2,50 @@ using System.Collections;
 using UnityEngine;
 using Photon.Pun;
 
-public class PowerUpSpawner : MonoBehaviourPunCallbacks
+public class PowerUpSpawner : MonoBehaviourPun
 {
     public GameObject[] powerUpPrefabs;
-    private bool powerUpIsSpawned = false;
+    public float respawnDelay = 10f;
 
-    void Start()
+    private void Start()
     {
-        if (PhotonNetwork.IsMasterClient)
+        Debug.Log("PowerUpSpawner Start method called");
+
+        if (photonView.IsMine)
         {
-            StartCoroutine(SpawnPowerUp());
+            Debug.Log("Is owner of the PhotonView. Spawning first power-up.");
+            SpawnPowerUp();
         }
     }
 
-    private IEnumerator SpawnPowerUp()
+    private void SpawnPowerUp()
     {
-        while (!powerUpIsSpawned)
+        int powerUpIndex = Random.Range(0, powerUpPrefabs.Length);
+        GameObject powerUp = PhotonNetwork.Instantiate(powerUpPrefabs[powerUpIndex].name, transform.position, Quaternion.identity);
+
+        SpeedBoostPowerUp speedBoost = powerUp.GetComponent<SpeedBoostPowerUp>();
+        if (speedBoost != null)
         {
-            Debug.Log("PowerUpSpawner: Powerup is not spawned, spawning a new powerup.");
-            GameObject powerUpToSpawn = powerUpPrefabs[Random.Range(0, powerUpPrefabs.Length)];
-            GameObject powerUp = PhotonNetwork.Instantiate(powerUpToSpawn.name, transform.position, transform.rotation);
-
-            IPowerUp powerUpComponent = powerUp.GetComponent<IPowerUp>();
-
-            if (powerUpComponent != null)
+            speedBoost.Spawner = this;
+        }
+        else
+        {
+            JumpBoostPowerUp jumpBoost = powerUp.GetComponent<JumpBoostPowerUp>();
+            if (jumpBoost != null)
             {
-                powerUpComponent.SetSpawner(this);
-                powerUpIsSpawned = true;
+                jumpBoost.Spawner = this;
             }
-            else
-            {
-                Debug.LogError("Spawned power-up does not implement IPowerUp interface.");
-            }
-
-            yield return null;
         }
     }
-
     public void PowerUpTaken()
     {
-        Debug.Log("Power up taken.");
-        if (PhotonNetwork.IsMasterClient)
-        {
-            Debug.Log("Power up taken on the server.");
-            powerUpIsSpawned = false;
-            Debug.Log("PowerUpIsSpawned after being set to false: " + powerUpIsSpawned);
-
-            StartCoroutine(DelayedSpawnPowerUp());
-        }
+        StartCoroutine(RespawnPowerUp());
     }
 
-    private IEnumerator DelayedSpawnPowerUp()
+    private IEnumerator RespawnPowerUp()
     {
-        yield return new WaitForSeconds(10f);
-        StartCoroutine(SpawnPowerUp());
+        yield return new WaitForSeconds(respawnDelay);
+
+        SpawnPowerUp();
     }
 }

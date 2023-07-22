@@ -136,6 +136,7 @@ GameObject:
   - component: {fileID: 1385024495942740953}
   - component: {fileID: 3895709090757022933}
   - component: {fileID: 3894934127216481796}
+  - component: {fileID: 4245083529318350750}
   m_Layer: 0
   m_Name: PlayerController
   m_TagString: Player
@@ -206,6 +207,7 @@ MonoBehaviour:
   walkSpeed: 3
   jumpForce: 300
   smoothTime: 0.15
+  activePowerUp: 0
 --- !u!54 &1385024495942740953
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -253,6 +255,22 @@ MonoBehaviour:
   isSeeker: 0
   canTag: 1
   model: {fileID: 6910838264031941432}
+--- !u!114 &4245083529318350750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6910838264031941432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a94be67ea00b1247a20cdbb8684e997, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerController: {fileID: 6884198806373843185}
+  roleTextPrefab: {fileID: 1705710737288845147, guid: b98b548b4f33c824aaea0bb2c09c5e87, type: 3}
+  powerUpTextPrefab: {fileID: 2492957209501204128, guid: 09248b6b5ed45cb4c8b86921d4326a04, type: 3}
+  boostedTextPrefab: {fileID: 1762575258596519670, guid: 47b27817a0f9ec243917d4f19a1b4887, type: 3}
 --- !u!1 &6910838265236137830
 GameObject:
   m_ObjectHideFlags: 0
@@ -351,7 +369,7 @@ GameObject:
   - component: {fileID: 6910838265287990663}
   m_Layer: 0
   m_Name: Capsule
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -480,7 +498,7 @@ GameObject:
   - component: {fileID: 567851246891310889}
   m_Layer: 0
   m_Name: Goggles
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

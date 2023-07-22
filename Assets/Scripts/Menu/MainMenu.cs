@@ -21,6 +21,12 @@ public class MainMenu : MonoBehaviourPunCallbacks
         gameObject.SetActive(false);
     }
 
+    public override void OnLeftRoom()
+    {
+        Debug.Log("Successfully left room, loading main menu scene...");
+        SceneManager.LoadScene("MainMenu");
+    }
+
     //public override void OnLeftRoom()
     //{
     //    Debug.Log("Successfully left room, loading main menu scene...");

@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
     public TextMeshProUGUI timerText;
     public static GameManager Instance { get; private set; }
 
+    public bool GameStarted { get; private set; } = false;
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -38,7 +39,11 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         if (timerText != null)
             timerText.text = "Time left: " + Mathf.Ceil(timer).ToString();
+
+        // Start the game as soon as everything is ready
+        StartGame();
     }
+
 
     void Update()
     {
@@ -65,6 +70,7 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
     [PunRPC]
     void EndGame()
     {
+        GameStarted = false;
         PlayerRoleManager[] players = FindObjectsOfType<PlayerRoleManager>();
         foreach (PlayerRoleManager player in players)
         {
@@ -105,6 +111,7 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         timer = gameDuration;
         gameIsOver = false;
+        GameStarted = true;
 
         EndGamePanel.Instance.HidePanel();
         endGameText.text = "";

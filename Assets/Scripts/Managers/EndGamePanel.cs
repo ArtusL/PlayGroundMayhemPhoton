@@ -71,11 +71,7 @@ public class EndGamePanel : MonoBehaviourPunCallbacks
     //}
     public void QuitGame()
     {
-        if (PhotonNetwork.InRoom)
-        {
-            Debug.Log("Attempting to leave room...");
-            PhotonNetwork.LeaveRoom(); // Leave the room
-        }
+        Launcher.Instance.LeaveRoom();
     }
 
 

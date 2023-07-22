@@ -1,66 +1,84 @@
-//using UnityEngine;
-//using UnityEngine.UI;
-//using TMPro;
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
-//public class PlayerUI : MonoBehaviour
-//{
-//    public PlayerController playerController;
-//    public Image staminaBar;
-//    public TextMeshProUGUI staminaText;
-//    public TextMeshProUGUI powerupText;
-//    public TextMeshProUGUI roleText;
+public class PlayerUI : MonoBehaviour
+{
+    public PlayerController playerController;
+    public GameObject roleTextPrefab;
+    public GameObject powerUpTextPrefab;
+    public GameObject boostedTextPrefab;
 
-//    void Update()
-//    {
-//        if (playerController != null && playerController.photonView.IsMine)
-//        {
-//            UpdateStaminaBar();
-//            UpdatePowerupText();
-//            UpdateRoleText();
-//        }
-//    }
+    private GameObject roleTextObject;
+    private GameObject powerUpTextObject;
+    private GameObject boostedTextObject;
 
-//    private void UpdateStaminaBar()
-//    {
-//        float maxStamina = playerController.GetMaxStamina();
-//        float staminaPercentage = playerController.currentStamina / maxStamina;
-//        staminaBar.fillAmount = staminaPercentage;
-//        staminaText.text = Mathf.RoundToInt(staminaPercentage * 100) + "%";
+    void Awake()
+    {
+        playerController = GetComponent<PlayerController>();
 
-//        if (staminaPercentage > 0.75f)
-//        {
-//            staminaBar.color = Color.green;
-//        }
-//        else if (staminaPercentage > 0.35f)
-//        {
-//            staminaBar.color = Color.yellow;
-//        }
-//        else
-//        {
-//            staminaBar.color = Color.red;
-//        }
-//    }
+        if (playerController.IsLocalPlayer())
+        {
+            roleTextObject = Instantiate(roleTextPrefab);
+            roleTextObject.transform.SetParent(FindObjectOfType<Canvas>().transform, false);
 
-//    void UpdatePowerupText()
-//    {
-//        if (playerController.currentPowerUp != null)
-//        {
-//            playerController.hasPowerup = true;
-//            powerupText.text = "Current Power-Up: " + playerController.currentPowerUp.GetPowerUpName();
-//            Debug.Log("In UpdatePowerupText: currentPowerUp = " + playerController.currentPowerUp.GetPowerUpName());
-//        }
-//        else
-//        {
-//            playerController.hasPowerup = false;
-//            powerupText.text = "No Power-Up";
-//            Debug.Log("Player has no power-up");
-//        }
-//        Debug.Log("In UpdatePowerupText: hasPowerup = " + playerController.hasPowerup);
-//    }
+            powerUpTextObject = Instantiate(powerUpTextPrefab);
+            powerUpTextObject.transform.SetParent(FindObjectOfType<Canvas>().transform, false);
 
-//    private void UpdateRoleText()
-//    {
-//        roleText.text = playerController.isSeeker ? "Role: Seeker" : "Role: Hider";
-//    }
-//}
+            boostedTextObject = Instantiate(boostedTextPrefab);
+            boostedTextObject.transform.SetParent(FindObjectOfType<Canvas>().transform, false);
+        }
+    }
 
+    void Update()
+    {
+        if (playerController.IsLocalPlayer())
+        {
+            UpdateUI();
+        }
+    }
+
+    void UpdateUI()
+    {
+        TMP_Text roleText = roleTextObject.GetComponent<TMP_Text>();
+        roleText.text = (playerController.roleManager.isSeeker ? "Seeking" : "Hiding");
+
+        TMP_Text powerUpText = powerUpTextObject.GetComponent<TMP_Text>();
+        if (playerController.storedPowerUp == PlayerController.PowerUp.None || playerController.storedPowerUp == null)
+        {
+            powerUpText.text = "Powerup: None";
+        }
+        else
+        {
+            powerUpText.text = "Powerup: " + GetCurrentPowerUp(playerController.storedPowerUp.Value);
+        }
+
+        TMP_Text boostedText = boostedTextObject.GetComponent<TMP_Text>();
+        if (playerController.IsPowerUpActive)
+        {
+            boostedText.text = "Boosted";
+        }
+        else
+        {
+            boostedText.text = "";
+        }
+    }
+
+
+    string GetCurrentPowerUp(PlayerController.PowerUp powerUp)
+    {
+        switch (powerUp)
+        {
+            case PlayerController.PowerUp.None:
+                return "None";
+            case PlayerController.PowerUp.SpeedBoost:
+                return "Speed Boost";
+            case PlayerController.PowerUp.JumpBoost:
+                return "Jump Boost";
+            default:
+                return "None";
+        }
+    }
+}
