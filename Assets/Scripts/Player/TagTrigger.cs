@@ -5,7 +5,7 @@ public class TagTrigger : MonoBehaviour
 {
     public PlayerRoleManager roleManager;
 
-    private void OnTriggerEnter(Collider other)
+    public void OnTriggerEnter(Collider other)
     {
         if (roleManager == null || !roleManager.isSeeker || !roleManager.canTag)
             return;
@@ -21,5 +21,9 @@ public class TagTrigger : MonoBehaviour
 
         otherPlayerRoleManager.photonView.RPC("SetSeeker", RpcTarget.AllBuffered, true);
         roleManager.photonView.RPC("SetSeeker", RpcTarget.AllBuffered, false);
+        if (otherPlayerRoleManager.playerController.IsLocalPlayer())
+        {
+            otherPlayerRoleManager.playerController.StartCoroutine(otherPlayerRoleManager.playerController.Stun(3.0f));
+        }
     }
 }

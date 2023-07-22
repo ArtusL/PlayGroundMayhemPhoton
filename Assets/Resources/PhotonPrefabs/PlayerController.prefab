@@ -204,9 +204,9 @@ MonoBehaviour:
   cameraHolder: {fileID: 8817411674537695965}
   mouseSensitivity: 3
   sprintSpeed: 6
-  walkSpeed: 3
   jumpForce: 300
   smoothTime: 0.15
+  canMove: 1
   activePowerUp: 0
 --- !u!54 &1385024495942740953
 Rigidbody:
@@ -252,6 +252,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86d8abbbe1cbe994f8b398aaa9bb0f42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerController: {fileID: 0}
   isSeeker: 0
   canTag: 1
   model: {fileID: 6910838264031941432}
@@ -271,6 +272,8 @@ MonoBehaviour:
   roleTextPrefab: {fileID: 1705710737288845147, guid: b98b548b4f33c824aaea0bb2c09c5e87, type: 3}
   powerUpTextPrefab: {fileID: 2492957209501204128, guid: 09248b6b5ed45cb4c8b86921d4326a04, type: 3}
   boostedTextPrefab: {fileID: 1762575258596519670, guid: 47b27817a0f9ec243917d4f19a1b4887, type: 3}
+  staminaTextPrefab: {fileID: 2862070071024635621, guid: b076ae30258bb754e98f6e385fcc8e13, type: 3}
+  stunnedTextPrefab: {fileID: 8400790865546692737, guid: 10f3f31d8e3d3e94ca2b875e85e8f773, type: 3}
 --- !u!1 &6910838265236137830
 GameObject:
   m_ObjectHideFlags: 0

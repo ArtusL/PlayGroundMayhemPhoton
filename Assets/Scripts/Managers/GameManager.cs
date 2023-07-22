@@ -40,7 +40,6 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
         if (timerText != null)
             timerText.text = "Time left: " + Mathf.Ceil(timer).ToString();
 
-        // Start the game as soon as everything is ready
         StartGame();
     }
 

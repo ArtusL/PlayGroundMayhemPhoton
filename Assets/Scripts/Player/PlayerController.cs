@@ -5,19 +5,23 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-
 	public PlayerRoleManager roleManager;
 
 	[SerializeField] GameObject cameraHolder;
 
-	[SerializeField] float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
+	[SerializeField] float mouseSensitivity, sprintSpeed, jumpForce, smoothTime;
 
 	float verticalLookRotation;
 	bool grounded;
 	Vector3 smoothMoveVelocity;
 	Vector3 moveAmount;
+	private bool isStunned = false;
+	private bool hasBeenStunned = false;
+	public bool canMove = true;
+	private bool canLook = true;
+	private Vector3 storedVelocity;
 
-	private float baseSpeed = 10f;
+	private float baseSpeed = 3f;
 	private float baseJumpPower = 10f;
 
 	private float speed;
@@ -27,6 +31,22 @@ public class PlayerController : MonoBehaviour
 	private float storedMultiplier = 0f;
 	private float storedDuration = 0f;
 	public bool IsPowerUpActive { get; private set; } = false;
+
+	private float stamina = 100f;
+	private float maxStamina = 100f;
+	public float Stamina
+	{
+		get { return stamina; }
+	}
+
+	public float MaxStamina
+	{
+		get { return maxStamina; }
+	}
+	private float staminaDepletionRate = 20f;
+	private float staminaRegenRate = 10f;
+	private float regenDelay = 3f;
+	private float regenTimer = 0f;
 
 	Rigidbody rb;
 
@@ -71,16 +91,35 @@ public class PlayerController : MonoBehaviour
 
 		grounded = Physics.Raycast(transform.position, dir, out hit, distance);
 
+		//if (!PV.IsMine || !canLook)
+		//	return;
+
+		//Look();
+		//Move();
+		//Jump();
 		if (!PV.IsMine)
 			return;
 
-		Look();
-		Move();
-		Jump();
+		if (canLook)
+		{
+			Look();
+		}
+
+		if (canMove)
+		{
+			Move();
+			Jump();
+		}
+		else
+		{
+			rb.velocity = storedVelocity;
+		}
 
 		if (roleManager.isSeeker)
 		{
 			GetComponentInChildren<Renderer>().material.color = Color.red;
+			StartCoroutine(Stun(3.0f));
+			isStunned = true;
 		}
 		else
 		{
@@ -102,21 +141,60 @@ public class PlayerController : MonoBehaviour
 			}
 			storedPowerUp = null;
 		}
+
+		if (!Input.GetKey(KeyCode.LeftShift))
+		{
+			regenTimer += Time.deltaTime;
+
+			if (regenTimer >= regenDelay)
+			{
+				stamina += staminaRegenRate * Time.deltaTime;
+				stamina = Mathf.Clamp(stamina, 0, maxStamina);
+			}
+		}
+
+		if (Input.GetKeyDown(KeyCode.Q))
+		{
+			StartCoroutine(Stun(3.0f));
+		}
 	}
 	void Look()
 	{
-		transform.Rotate(Vector3.up * Input.GetAxisRaw("Mouse X") * mouseSensitivity);
+		if (canLook)  
+		{
+			transform.Rotate(Vector3.up * Input.GetAxisRaw("Mouse X") * mouseSensitivity);
 
-		verticalLookRotation += Input.GetAxisRaw("Mouse Y") * mouseSensitivity;
-		verticalLookRotation = Mathf.Clamp(verticalLookRotation, -90f, 90f);
+			verticalLookRotation += Input.GetAxisRaw("Mouse Y") * mouseSensitivity;
+			verticalLookRotation = Mathf.Clamp(verticalLookRotation, -90f, 90f);
 
-		cameraHolder.transform.localEulerAngles = Vector3.left * verticalLookRotation;
+			cameraHolder.transform.localEulerAngles = Vector3.left * verticalLookRotation;
+		}
 	}
 
 	void Move()
 	{
+		if (!canMove)
+			return;
+
 		Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
-		moveAmount = Vector3.SmoothDamp(moveAmount, moveDir * (Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : speed), ref smoothMoveVelocity, smoothTime);
+
+		if (Input.GetKey(KeyCode.LeftShift) && stamina > 0)
+		{
+			moveAmount = Vector3.SmoothDamp(moveAmount, moveDir * sprintSpeed, ref smoothMoveVelocity, smoothTime);
+			stamina -= staminaDepletionRate * Time.deltaTime;
+			stamina = Mathf.Clamp(stamina, 0, maxStamina);
+			regenTimer = 0;
+			Debug.Log("Sprinting current stamina: " + stamina); 
+		}
+		else
+		{
+			moveAmount = Vector3.SmoothDamp(moveAmount, moveDir * speed, ref smoothMoveVelocity, smoothTime);
+
+			if (stamina < maxStamina)
+			{
+				Debug.Log("Regenerating stamina current stamina: " + stamina);
+			}
+		}
 	}
 
 	void Jump()
@@ -137,14 +215,22 @@ public class PlayerController : MonoBehaviour
 		if (!PV.IsMine)
 			return;
 
-		rb.MovePosition(rb.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
+		if (canMove)
+		{
+			rb.MovePosition(rb.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
+		}
+		else
+		{
+			rb.velocity = storedVelocity;
+		}
+		//rb.MovePosition(rb.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
 	}
 
 	public void StorePowerUp(PowerUp powerUp, float multiplier, float duration)
 	{
 		if (storedPowerUp == null)
 		{
-			Debug.Log("Storing power-up: " + powerUp);
+			Debug.Log("Storing powerup: " + powerUp);
 			storedPowerUp = powerUp;
 			storedMultiplier = multiplier;
 			storedDuration = duration;
@@ -153,7 +239,7 @@ public class PlayerController : MonoBehaviour
 
 	public void ApplySpeedBoost(float multiplier, float duration)
 	{
-		Debug.Log("ApplySpeedBoost called with multiplier: " + multiplier + ", duration: " + duration);
+		Debug.Log("ApplySpeedBoost with multiplier: " + multiplier + ", duration: " + duration);
 
 		if (!IsPowerUpActive)
 		{
@@ -164,18 +250,24 @@ public class PlayerController : MonoBehaviour
 
 	private IEnumerator ApplySpeedBoostCoroutine(float multiplier, float duration)
 	{
-		Debug.Log("ApplySpeedBoostCoroutine called with multiplier: " + multiplier + ", duration: " + duration);
+		Debug.Log("ApplySpeedBoostCoroutine with multiplier: " + multiplier + ", duration: " + duration);
 		IsPowerUpActive = true;
-		speed *= multiplier;
+		float originalSpeed = speed;
+		float originalSprintSpeed = sprintSpeed;
 
-		Debug.Log("Player speed after boost: " + speed);
+		speed *= multiplier;
+		sprintSpeed *= multiplier;
+
+		Debug.Log("Player speed after boost: " + speed + ", Sprint speed after boost: " + sprintSpeed);
 
 		yield return new WaitForSeconds(duration);
 
-		speed = baseSpeed;
+		speed = originalSpeed;
+		sprintSpeed = originalSprintSpeed;
+
 		IsPowerUpActive = false;
 		activePowerUp = PowerUp.None;
-		Debug.Log("Speed boost ended. Player speed is now: " + speed);
+		Debug.Log("Speed boost ended. Player speed is now: " + speed + ", Sprint speed is now: " + sprintSpeed);
 	}
 
 	public void ApplyJumpBoost(float multiplier, float duration)
@@ -201,6 +293,47 @@ public class PlayerController : MonoBehaviour
 		IsPowerUpActive = false;
 		activePowerUp = PowerUp.None;
 		Debug.Log("Jump boost ended");
+	}
+
+	public bool IsStunned()
+	{
+		return isStunned;
+	}
+
+	public IEnumerator Stun(float duration)
+	{
+		canMove = false;
+		canLook = false;
+		isStunned = true;
+
+		storedVelocity = rb.velocity;
+
+		storedVelocity.x = 0;
+		storedVelocity.z = 0;
+
+		bool wasMovingUpwards = storedVelocity.y > 0;
+
+		rb.useGravity = false;
+
+		rb.velocity = storedVelocity;
+
+		float stunTimer = 0;
+		while (stunTimer < duration)
+		{
+			if (wasMovingUpwards)
+			{
+				rb.velocity += Physics.gravity * Time.deltaTime * 2;
+			}
+
+			stunTimer += Time.deltaTime;
+			yield return null;
+		}
+
+		canMove = true;
+		canLook = true;
+		isStunned = false;
+		hasBeenStunned = false;
+		rb.useGravity = true;
 	}
 }
 

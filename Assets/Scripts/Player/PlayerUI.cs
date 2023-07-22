@@ -10,7 +10,11 @@ public class PlayerUI : MonoBehaviour
     public GameObject roleTextPrefab;
     public GameObject powerUpTextPrefab;
     public GameObject boostedTextPrefab;
+    public GameObject staminaTextPrefab;
+    public GameObject stunnedTextPrefab;
 
+    private GameObject stunnedTextObject;
+    private GameObject staminaTextObject;
     private GameObject roleTextObject;
     private GameObject powerUpTextObject;
     private GameObject boostedTextObject;
@@ -29,7 +33,15 @@ public class PlayerUI : MonoBehaviour
 
             boostedTextObject = Instantiate(boostedTextPrefab);
             boostedTextObject.transform.SetParent(FindObjectOfType<Canvas>().transform, false);
+
+            staminaTextObject = Instantiate(staminaTextPrefab);
+            staminaTextObject.transform.SetParent(FindObjectOfType<Canvas>().transform, false);
+
+            stunnedTextObject = Instantiate(stunnedTextPrefab);
+            stunnedTextObject.transform.SetParent(FindObjectOfType<Canvas>().transform, false);
+
         }
+
     }
 
     void Update()
@@ -64,6 +76,12 @@ public class PlayerUI : MonoBehaviour
         {
             boostedText.text = "";
         }
+
+        TMP_Text staminaText = staminaTextObject.GetComponent<TMP_Text>();
+        staminaText.text = "Stamina: " + playerController.Stamina.ToString("0");
+
+        TMP_Text stunnedText = stunnedTextObject.GetComponent<TMP_Text>();
+        stunnedText.text = playerController.IsStunned() ? "Stunned" : "";
     }
 
 

@@ -4,15 +4,17 @@ using System.Collections;
 
 public class PlayerRoleManager : MonoBehaviourPunCallbacks, IPunObservable
 {
+    public PlayerController playerController;
     public bool isSeeker;
     public bool canTag = true;
-    public GameObject model;  // Assign the player model in Unity Inspector
+    public GameObject model;
 
     private void Start()
     {
+        playerController = GetComponent<PlayerController>();
+
         if (photonView.IsMine)
         {
-            // Decide who is the seeker
             isSeeker = PhotonNetwork.IsMasterClient;
             photonView.RPC("SetSeeker", RpcTarget.AllBuffered, isSeeker);
         }
@@ -26,6 +28,7 @@ public class PlayerRoleManager : MonoBehaviourPunCallbacks, IPunObservable
         if (isSeeker)
         {
             StartCoroutine(TagCooldown());
+            //StartCoroutine(playerController.Stun(3.0f));
         }
     }
 
@@ -41,17 +44,19 @@ public class PlayerRoleManager : MonoBehaviourPunCallbacks, IPunObservable
     {
         isSeeker = false;
         transform.position = newPosition;
+        if (playerController.IsLocalPlayer())
+        {
+            playerController.StopAllCoroutines();
+        }
     }
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting)
         {
-            // We own this player: send the others our data
             stream.SendNext(isSeeker);
         }
         else
         {
-            // Network player, receive data
             this.isSeeker = (bool)stream.ReceiveNext();
         }
     }
