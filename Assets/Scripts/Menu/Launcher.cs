@@ -47,7 +47,6 @@ public class Launcher : MonoBehaviourPunCallbacks
     {
         MenuManager.Instance.OpenMenu("MainMenu");
         Debug.Log("Joined Lobby");
-        PhotonNetwork.NickName = "player " + Random.Range(0, 1000).ToString("0000");
     }
 
     public void CreateRoom()

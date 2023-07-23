@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
 	private bool isStunned = false;
 	public bool canMove = true;
 	private bool canLook = true;
+	private bool wasSeeker = false;
 	private Vector3 storedVelocity;
 
 	private float baseSpeed = 3f;
@@ -116,16 +117,17 @@ public class PlayerController : MonoBehaviour
 			rb.velocity = storedVelocity;
 		}
 
-		if (roleManager.isSeeker)
+		if (roleManager.isSeeker && !wasSeeker)
 		{
 			GetComponentInChildren<Renderer>().material.color = Color.red;
 			StartCoroutine(Stun(3.0f));
 			isStunned = true;
 		}
-		else
+		else if(!roleManager.isSeeker)
 		{
 			GetComponentInChildren<Renderer>().material.color = Color.blue;
 		}
+		wasSeeker = roleManager.isSeeker;
 
 		if (Input.GetKeyDown(KeyCode.E) && storedPowerUp.HasValue)
 		{
@@ -343,14 +345,18 @@ public class PlayerController : MonoBehaviour
 	}
 	public void ApplyStunToOthers(float duration)
 	{
-		Debug.Log("ApplyStunToOthers for duration: " + duration);
-		if (!IsPowerUpActive)
+		Debug.Log($"{gameObject.name} is applying stun to others.");
+
+		foreach (var player in GameObject.FindObjectsOfType<PlayerController>())
 		{
-			activePowerUp = PowerUp.Stun;
-			PV.RPC("StunAllExceptUser", RpcTarget.All, PV.ViewID, duration);
-			activePowerUp = PowerUp.None;
+			if (player != this)
+			{
+				Debug.Log($"Stunning player {player.gameObject.name}.");
+				player.Stun(duration);
+			}
 		}
 	}
+
 
 	[PunRPC]
 	public void StunAllExceptUser(int userViewID, float duration)
