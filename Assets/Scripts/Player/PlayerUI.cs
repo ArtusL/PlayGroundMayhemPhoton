@@ -97,6 +97,8 @@ public class PlayerUI : MonoBehaviour
                 return "Jump Boost";
             case PlayerController.PowerUp.Stun:
                 return "Stun All";
+            case PlayerController.PowerUp.StaminaRefill:
+                return "Stamina Refill";
             default:
                 return "None";
         }

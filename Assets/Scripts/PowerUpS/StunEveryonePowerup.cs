@@ -1,22 +1,57 @@
-using UnityEngine;
 using Photon.Pun;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
-public class StunEveryonePowerup : MonoBehaviourPunCallbacks
+public class StunEveryonePowerUp : MonoBehaviour
 {
-    public float stunDuration = 5f;
     public PowerUpSpawner Spawner { get; set; }
+    public float StunDuration = 5.0f;
+    private PhotonView photonView;
+
+    private void Awake()
+    {
+        photonView = GetComponent<PhotonView>();
+    }
 
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Stun PowerUp Trigger entered by: " + other.name);
+        Debug.Log("PowerUp Trigger entered by: " + other.name);
         PlayerController playerController = other.gameObject.GetComponentInParent<PlayerController>();
-        if (playerController != null && playerController.IsLocalPlayer())
+        if (playerController != null)
         {
-            playerController.StorePowerUp(PlayerController.PowerUp.Stun, 1f, stunDuration);
-            Spawner.PowerUpTaken();
+            playerController.StorePowerUp(PlayerController.PowerUp.Stun, 0f, 0f);
             Debug.Log("Attempting to destroy power-up object");
-            Photon.Pun.PhotonNetwork.Destroy(this.gameObject);
+            photonView.RPC("DestroyObjectAndRespawn", RpcTarget.MasterClient, photonView.ViewID);
+        }
+    }
+
+    [PunRPC]
+    public void Pickup(int playerID)
+    {
+        Debug.Log("Powerup Pickup called");
+        GameObject playerGO = PhotonView.Find(playerID).gameObject;
+        PlayerController player = playerGO.GetComponent<PlayerController>();
+
+        Debug.Log("Stun PowerUp picked up by: " + playerGO.name);
+
+        player.ApplyStunToOthers(StunDuration);
+
+        PhotonNetwork.Destroy(gameObject);
+    }
+
+    [PunRPC]
+    void DestroyObjectAndRespawn(int photonViewID)
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonView photonView = PhotonView.Find(photonViewID);
+            if (photonView)
+            {
+                PowerUpSpawner spawner = photonView.GetComponent<StunEveryonePowerUp>().Spawner;
+                spawner?.PowerUpTaken();
+                PhotonNetwork.Destroy(photonView.gameObject);
+            }
         }
     }
 }

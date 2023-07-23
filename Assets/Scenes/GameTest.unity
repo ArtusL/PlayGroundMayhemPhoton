@@ -507,10 +507,14 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3578835725204807814, guid: 238227c03236a6c47aa0d5b686975ed5, type: 3}
       propertyPath: powerUpPrefabs.Array.size
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3578835725204807814, guid: 238227c03236a6c47aa0d5b686975ed5, type: 3}
       propertyPath: powerUpPrefabs.Array.data[2]
+      value: 
+      objectReference: {fileID: 9004236131763241842, guid: 8dca4d2e94c28354a917ae2a667b3336, type: 3}
+    - target: {fileID: 3578835725204807814, guid: 238227c03236a6c47aa0d5b686975ed5, type: 3}
+      propertyPath: powerUpPrefabs.Array.data[3]
       value: 
       objectReference: {fileID: 2377541259283002394, guid: 9d0f7b083d14b9e408f4f9f8a6b047bf, type: 3}
     - target: {fileID: 3660095951425656788, guid: 238227c03236a6c47aa0d5b686975ed5, type: 3}
@@ -1321,10 +1325,14 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3578835725204807814, guid: 238227c03236a6c47aa0d5b686975ed5, type: 3}
       propertyPath: powerUpPrefabs.Array.size
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3578835725204807814, guid: 238227c03236a6c47aa0d5b686975ed5, type: 3}
       propertyPath: powerUpPrefabs.Array.data[2]
+      value: 
+      objectReference: {fileID: 9004236131763241842, guid: 8dca4d2e94c28354a917ae2a667b3336, type: 3}
+    - target: {fileID: 3578835725204807814, guid: 238227c03236a6c47aa0d5b686975ed5, type: 3}
+      propertyPath: powerUpPrefabs.Array.data[3]
       value: 
       objectReference: {fileID: 2377541259283002394, guid: 9d0f7b083d14b9e408f4f9f8a6b047bf, type: 3}
     - target: {fileID: 3660095951425656788, guid: 238227c03236a6c47aa0d5b686975ed5, type: 3}

@@ -35,8 +35,25 @@ public class PowerUpSpawner : MonoBehaviourPun
             {
                 jumpBoost.Spawner = this;
             }
+            else
+            {
+                StaminaPowerUp staminaRefill = powerUp.GetComponent<StaminaPowerUp>();
+                if (staminaRefill != null)
+                {
+                    staminaRefill.Spawner = this;
+                }
+                else
+                {
+                    StunEveryonePowerUp StunEveryone = powerUp.GetComponent<StunEveryonePowerUp>();
+                    if (StunEveryone != null)
+                    {
+                        StunEveryone.Spawner = this;
+                    }
+                }
+            }
         }
     }
+
     public void PowerUpTaken()
     {
         Debug.Log("PowerUpTaken method called. Starting RespawnPowerUp coroutine.");

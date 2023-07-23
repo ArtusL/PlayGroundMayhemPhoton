@@ -16,7 +16,6 @@ public class PlayerController : MonoBehaviour
 	Vector3 smoothMoveVelocity;
 	Vector3 moveAmount;
 	private bool isStunned = false;
-	private bool hasBeenStunned = false;
 	public bool canMove = true;
 	private bool canLook = true;
 	private Vector3 storedVelocity;
@@ -56,7 +55,8 @@ public class PlayerController : MonoBehaviour
 		None,
 		SpeedBoost,
 		JumpBoost,
-		Stun
+		Stun,
+		StaminaRefill
 	}
 	public PowerUp activePowerUp = PowerUp.None;
 
@@ -127,9 +127,9 @@ public class PlayerController : MonoBehaviour
 			GetComponentInChildren<Renderer>().material.color = Color.blue;
 		}
 
-		if (Input.GetKeyDown(KeyCode.E) && storedPowerUp.HasValue) 
+		if (Input.GetKeyDown(KeyCode.E) && storedPowerUp.HasValue)
 		{
-			switch (storedPowerUp.Value)  
+			switch (storedPowerUp.Value)
 			{
 				case PowerUp.SpeedBoost:
 					ApplySpeedBoost(storedMultiplier, storedDuration);
@@ -139,6 +139,9 @@ public class PlayerController : MonoBehaviour
 					break;
 				case PowerUp.Stun:
 					ApplyStunToOthers(storedDuration);
+					break;
+				case PowerUp.StaminaRefill:
+					RefillStamina();
 					break;
 				default:
 					break;
@@ -188,7 +191,7 @@ public class PlayerController : MonoBehaviour
 			stamina -= staminaDepletionRate * Time.deltaTime;
 			stamina = Mathf.Clamp(stamina, 0, maxStamina);
 			regenTimer = 0;
-			Debug.Log("Sprinting current stamina: " + stamina); 
+			//Debug.Log("Sprinting current stamina: " + stamina); 
 		}
 		else
 		{
@@ -196,7 +199,7 @@ public class PlayerController : MonoBehaviour
 
 			if (stamina < maxStamina)
 			{
-				Debug.Log("Regenerating stamina current stamina: " + stamina);
+				//Debug.Log("Regenerating stamina current stamina: " + stamina);
 			}
 		}
 	}
@@ -336,7 +339,6 @@ public class PlayerController : MonoBehaviour
 		canMove = true;
 		canLook = true;
 		isStunned = false;
-		hasBeenStunned = false;
 		rb.useGravity = true;
 	}
 	public void ApplyStunToOthers(float duration)
@@ -345,17 +347,24 @@ public class PlayerController : MonoBehaviour
 		if (!IsPowerUpActive)
 		{
 			activePowerUp = PowerUp.Stun;
-			PV.RPC("StunOthers", RpcTarget.All, PhotonNetwork.LocalPlayer.ActorNumber, duration);
+			PV.RPC("StunAllExceptUser", RpcTarget.All, PV.ViewID, duration);
 			activePowerUp = PowerUp.None;
 		}
 	}
+
 	[PunRPC]
-	public void StunOthers(int actorNumber, float duration)
+	public void StunAllExceptUser(int userViewID, float duration)
 	{
-		if (PhotonNetwork.LocalPlayer.ActorNumber != actorNumber)
+		if (PV.ViewID != userViewID)
 		{
 			StartCoroutine(Stun(duration));
 		}
+	}
+
+	public void RefillStamina()
+	{
+		Debug.Log("RefillStamina called");
+		stamina = maxStamina;
 	}
 }
 

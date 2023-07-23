@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8419962257817245942}
   - component: {fileID: 5910551090689643928}
   - component: {fileID: 365224072582105890}
+  - component: {fileID: 2996355415036407038}
   m_Layer: 0
   m_Name: StunAllPowerup
   m_TagString: Untagged
@@ -46,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6e7e8ba11f9a444f8e37a02db3dd71b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stunDuration: 3
+  StunDuration: 3
 --- !u!114 &365224072582105890
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -69,6 +70,20 @@ MonoBehaviour:
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!136 &2996355415036407038
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2377541259283002394}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  m_Radius: 0.5
+  m_Height: 1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &8215369277860106058
 GameObject:
   m_ObjectHideFlags: 0
@@ -80,7 +95,6 @@ GameObject:
   - component: {fileID: 3464089254017851165}
   - component: {fileID: 5461709990482938464}
   - component: {fileID: 3428125346084783246}
-  - component: {fileID: 5627513931216143027}
   m_Layer: 0
   m_Name: Cylinder
   m_TagString: Untagged
@@ -153,17 +167,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &5627513931216143027
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8215369277860106058}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
