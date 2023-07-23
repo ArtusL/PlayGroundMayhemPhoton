@@ -39,6 +39,7 @@ public class PowerUpSpawner : MonoBehaviourPun
     }
     public void PowerUpTaken()
     {
+        Debug.Log("PowerUpTaken method called. Starting RespawnPowerUp coroutine.");
         StartCoroutine(RespawnPowerUp());
     }
 

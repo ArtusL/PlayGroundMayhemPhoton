@@ -9,17 +9,15 @@ public class SpeedBoostPowerUp : MonoBehaviourPunCallbacks
 
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Speed Boost Trigger entered by: " + other.name);
+        Debug.Log("PowerUp Trigger entered by: " + other.name);
         PlayerController playerController = other.gameObject.GetComponentInParent<PlayerController>();
-        if (playerController != null && playerController.IsLocalPlayer())
+        if (playerController != null)
         {
             playerController.StorePowerUp(PlayerController.PowerUp.SpeedBoost, speedMultiplier, duration);
-            Spawner.PowerUpTaken();
             Debug.Log("Attempting to destroy power-up object");
-            Photon.Pun.PhotonNetwork.Destroy(this.gameObject);
+            photonView.RPC("DestroyObjectAndRespawn", RpcTarget.MasterClient, photonView.ViewID);
         }
     }
-
 
     [PunRPC]
     public void Pickup(int playerID)
@@ -35,4 +33,18 @@ public class SpeedBoostPowerUp : MonoBehaviourPunCallbacks
         PhotonNetwork.Destroy(gameObject);
     }
 
+    [PunRPC]
+    void DestroyObjectAndRespawn(int photonViewID)
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonView photonView = PhotonView.Find(photonViewID);
+            if (photonView)
+            {
+                PowerUpSpawner spawner = photonView.GetComponent<SpeedBoostPowerUp>().Spawner; 
+                spawner?.PowerUpTaken();
+                PhotonNetwork.Destroy(photonView.gameObject);
+            }
+        }
+    }
 }

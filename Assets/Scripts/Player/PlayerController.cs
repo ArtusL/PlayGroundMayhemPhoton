@@ -55,7 +55,8 @@ public class PlayerController : MonoBehaviour
 	{
 		None,
 		SpeedBoost,
-		JumpBoost
+		JumpBoost,
+		Stun
 	}
 	public PowerUp activePowerUp = PowerUp.None;
 
@@ -135,6 +136,9 @@ public class PlayerController : MonoBehaviour
 					break;
 				case PowerUp.JumpBoost:
 					ApplyJumpBoost(storedMultiplier, storedDuration);
+					break;
+				case PowerUp.Stun:
+					ApplyStunToOthers(storedDuration);
 					break;
 				default:
 					break;
@@ -334,6 +338,24 @@ public class PlayerController : MonoBehaviour
 		isStunned = false;
 		hasBeenStunned = false;
 		rb.useGravity = true;
+	}
+	public void ApplyStunToOthers(float duration)
+	{
+		Debug.Log("ApplyStunToOthers for duration: " + duration);
+		if (!IsPowerUpActive)
+		{
+			activePowerUp = PowerUp.Stun;
+			PV.RPC("StunOthers", RpcTarget.All, PhotonNetwork.LocalPlayer.ActorNumber, duration);
+			activePowerUp = PowerUp.None;
+		}
+	}
+	[PunRPC]
+	public void StunOthers(int actorNumber, float duration)
+	{
+		if (PhotonNetwork.LocalPlayer.ActorNumber != actorNumber)
+		{
+			StartCoroutine(Stun(duration));
+		}
 	}
 }
 

@@ -48,7 +48,8 @@ MonoBehaviour:
   powerUpPrefabs:
   - {fileID: 4812683708746921173, guid: f8dff1a4cef2d6e4b8a8354c54744e58, type: 3}
   - {fileID: 6315059912697680117, guid: 24b9341adfe5a314cb1c67ee5f5536c6, type: 3}
-  spawnRate: 10
+  - {fileID: 2377541259283002394, guid: 9d0f7b083d14b9e408f4f9f8a6b047bf, type: 3}
+  respawnDelay: 10
 --- !u!114 &6128359582127122557
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -95,6 +95,8 @@ public class PlayerUI : MonoBehaviour
                 return "Speed Boost";
             case PlayerController.PowerUp.JumpBoost:
                 return "Jump Boost";
+            case PlayerController.PowerUp.Stun:
+                return "Stun All";
             default:
                 return "None";
         }

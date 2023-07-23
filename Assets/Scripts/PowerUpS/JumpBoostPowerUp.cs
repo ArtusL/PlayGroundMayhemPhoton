@@ -7,16 +7,15 @@ public class JumpBoostPowerUp : MonoBehaviourPunCallbacks
     public float duration = 5f;
     public PowerUpSpawner Spawner { get; set; }
 
-     void OnTriggerEnter(Collider other)
+    void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Jump Boost Trigger entered by: " + other.name);
+        Debug.Log("PowerUp Trigger entered by: " + other.name);
         PlayerController playerController = other.gameObject.GetComponentInParent<PlayerController>();
-        if (playerController != null && playerController.IsLocalPlayer())
+        if (playerController != null)
         {
             playerController.StorePowerUp(PlayerController.PowerUp.JumpBoost, jumpMultiplier, duration);
-            Spawner.PowerUpTaken();
             Debug.Log("Attempting to destroy power-up object");
-            Photon.Pun.PhotonNetwork.Destroy(this.gameObject);
+            photonView.RPC("DestroyObjectAndRespawn", RpcTarget.MasterClient, photonView.ViewID);
         }
     }
 
@@ -28,11 +27,26 @@ public class JumpBoostPowerUp : MonoBehaviourPunCallbacks
         GameObject playerGO = PhotonView.Find(playerID).gameObject;
         PlayerController player = playerGO.GetComponent<PlayerController>();
 
-        Debug.Log("Jump Boost PowerUp picked up by: " + playerGO.name);
+        Debug.Log("Speed Boost PowerUp picked up by: " + playerGO.name);
 
-        player.ApplyJumpBoost(jumpMultiplier, duration);
+        player.ApplySpeedBoost(jumpMultiplier, duration);
 
         PhotonNetwork.Destroy(gameObject);
+    }
+
+    [PunRPC]
+    void DestroyObjectAndRespawn(int photonViewID)
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            PhotonView photonView = PhotonView.Find(photonViewID);
+            if (photonView)
+            {
+                PowerUpSpawner spawner = photonView.GetComponent<JumpBoostPowerUp>().Spawner; 
+                spawner?.PowerUpTaken();
+                PhotonNetwork.Destroy(photonView.gameObject);
+            }
+        }
     }
 
 }
