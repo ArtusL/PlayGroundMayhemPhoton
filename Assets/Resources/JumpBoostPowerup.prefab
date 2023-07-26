@@ -48,7 +48,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   jumpMultiplier: 2
-  duration: 5
+  duration: 3
 --- !u!114 &-5674867866536891199
 MonoBehaviour:
   m_ObjectHideFlags: 0

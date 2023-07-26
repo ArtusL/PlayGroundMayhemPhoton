@@ -21,8 +21,8 @@ public class PlayerController : MonoBehaviour
 	private bool wasSeeker = false;
 	private Vector3 storedVelocity;
 
-	private float baseSpeed = 3f;
-	private float baseJumpPower = 10f;
+	public float baseSpeed = 5f;
+	public float baseJumpPower = 10f;
 
 	private float speed;
 	private float jumpPower;
@@ -91,8 +91,8 @@ public class PlayerController : MonoBehaviour
 		float distance = 1f;
 		Vector3 dir = new Vector3(0, -1);
 
-		grounded = Physics.Raycast(transform.position, dir, out hit, distance);
-
+		//grounded = Physics.Raycast(transform.position, dir, out hit, distance);
+		//Debug.Log("Grounded: " + grounded);
 		//if (!PV.IsMine || !canLook)
 		//	return;
 
@@ -164,8 +164,12 @@ public class PlayerController : MonoBehaviour
 
 		if (Input.GetKeyDown(KeyCode.Q))
 		{
-			StartCoroutine(Stun(3.0f));
+			PushOtherPlayer(1000);
 		}
+		//if (Input.GetKeyDown(KeyCode.Q))
+		//{
+		//	StartCoroutine(Stun(3.0f));
+		//}
 	}
 	void Look()
 	{
@@ -187,7 +191,7 @@ public class PlayerController : MonoBehaviour
 
 		Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
 
-		if (Input.GetKey(KeyCode.LeftShift) && stamina > 0)
+		if (Input.GetKey(KeyCode.LeftShift) && stamina > 0 && moveDir.magnitude > 0)
 		{
 			moveAmount = Vector3.SmoothDamp(moveAmount, moveDir * sprintSpeed, ref smoothMoveVelocity, smoothTime);
 			stamina -= staminaDepletionRate * Time.deltaTime;
@@ -210,6 +214,7 @@ public class PlayerController : MonoBehaviour
 	{
 		if (Input.GetKeyDown(KeyCode.Space) && grounded)
 		{
+			Debug.Log("Jump triggered");
 			rb.AddForce(transform.up * jumpForce);
 		}
 	}
@@ -217,6 +222,7 @@ public class PlayerController : MonoBehaviour
 	public void SetGroundedState(bool _grounded)
 	{
 		grounded = _grounded;
+		Debug.Log("Grounded state set: " + grounded);
 	}
 
 	void FixedUpdate()
@@ -371,6 +377,23 @@ public class PlayerController : MonoBehaviour
 	{
 		Debug.Log("RefillStamina called");
 		stamina = maxStamina;
+	}
+
+	public void PushOtherPlayer(float pushForce)
+	{
+		RaycastHit hit;
+		if (Physics.Raycast(transform.position, transform.forward, out hit, 2f)) 
+		{
+			PlayerController otherPlayer = hit.transform.GetComponent<PlayerController>();
+			if (otherPlayer != null && otherPlayer != this)
+			{
+				Rigidbody otherPlayerRb = otherPlayer.GetComponent<Rigidbody>();
+				if (otherPlayerRb != null)
+				{
+					otherPlayerRb.AddForce(transform.forward * pushForce, ForceMode.Impulse);
+				}
+			}
+		}
 	}
 }
 

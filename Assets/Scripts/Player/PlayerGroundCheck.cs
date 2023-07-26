@@ -7,23 +7,28 @@ public class PlayerGroundCheck : MonoBehaviour
     PlayerController playerController;
     public LayerMask groundLayer;
     public float groundCheckRadius = 0.3f;
+    Collider playerCollider;
 
     void Awake()
     {
         playerController = GetComponentInParent<PlayerController>();
+        playerCollider = GetComponentInParent<Collider>();
     }
 
-    void Update()
+    void FixedUpdate()
     {
         // Check if player is grounded by casting an overlap sphere
-        if (Physics.OverlapSphere(transform.position, groundCheckRadius, groundLayer).Length > 0)
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, groundCheckRadius, groundLayer);
+
+        foreach (var hitCollider in hitColliders)
         {
-            playerController.SetGroundedState(true);
+            if (hitCollider != playerCollider)
+            {
+                playerController.SetGroundedState(true);
+                return;
+            }
         }
-        else
-        {
-            playerController.SetGroundedState(false);
-        }
+        playerController.SetGroundedState(false);
     }
 
     void OnDrawGizmos()
@@ -32,6 +37,7 @@ public class PlayerGroundCheck : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, groundCheckRadius);
     }
 }
+
 
 
 

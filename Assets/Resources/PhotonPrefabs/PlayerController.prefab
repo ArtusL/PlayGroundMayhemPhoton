@@ -203,10 +203,12 @@ MonoBehaviour:
   roleManager: {fileID: 3894934127216481796}
   cameraHolder: {fileID: 8817411674537695965}
   mouseSensitivity: 3
-  sprintSpeed: 6
-  jumpForce: 300
+  sprintSpeed: 10
+  jumpForce: 350
   smoothTime: 0.15
   canMove: 1
+  baseSpeed: 5
+  baseJumpPower: 10
   activePowerUp: 0
 --- !u!54 &1385024495942740953
 Rigidbody:
@@ -222,7 +224,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 80
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!114 &3895709090757022933
 MonoBehaviour:
