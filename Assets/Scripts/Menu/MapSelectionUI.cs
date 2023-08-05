@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Photon.Pun;
+using Photon.Realtime;
 
 public class MapSelectionUI : MonoBehaviourPunCallbacks
 {
@@ -19,7 +20,7 @@ public class MapSelectionUI : MonoBehaviourPunCallbacks
             Debug.LogError("MapSelector instance is null!");
             return;
         }
-
+        UpdateButtonInteractivity();
         previousButton.interactable = PhotonNetwork.IsMasterClient;
         nextButton.interactable = PhotonNetwork.IsMasterClient;
 
@@ -33,7 +34,12 @@ public class MapSelectionUI : MonoBehaviourPunCallbacks
         previousButton.onClick.AddListener(OnPreviousButtonClicked);
         nextButton.onClick.AddListener(OnNextButtonClicked);
     }
-
+    private void UpdateButtonInteractivity()
+    {
+        bool isMaster = PhotonNetwork.IsMasterClient;
+        previousButton.interactable = isMaster;
+        nextButton.interactable = isMaster;
+    }
     private void OnPreviousButtonClicked()
     {
         // Decrease index and wrap around if necessary
@@ -60,5 +66,10 @@ public class MapSelectionUI : MonoBehaviourPunCallbacks
             int index = (int)propertiesThatChanged["selectedMapIndex"];
             mapNameText.text = mapSelector.mapNames[index];
         }
+    }
+
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        UpdateButtonInteractivity();
     }
 }
