@@ -29,6 +29,11 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     void Start()
     {
+        if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("gameDuration"))
+        {
+            gameDuration = (float)PhotonNetwork.CurrentRoom.CustomProperties["gameDuration"];
+        }
+
         if (PhotonNetwork.IsMasterClient)
         {
             timer = gameDuration;

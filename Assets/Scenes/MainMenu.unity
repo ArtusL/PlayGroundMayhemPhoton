@@ -5485,8 +5485,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mapNames:
+  - Plane
   - Map1
-  - Map2
   - Classic
   currentMapIndex: 0
 --- !u!4 &1736890560
