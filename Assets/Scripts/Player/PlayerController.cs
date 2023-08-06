@@ -11,6 +11,8 @@ public class PlayerController : MonoBehaviour
 
 	[SerializeField] float mouseSensitivity, sprintSpeed, jumpForce, smoothTime;
 
+	 private Animator animator;
+
 	float verticalLookRotation;
 	bool grounded;
 	Vector3 smoothMoveVelocity;
@@ -22,9 +24,17 @@ public class PlayerController : MonoBehaviour
 	private Vector3 storedVelocity;
 	private Vector3 jumpVelocity;
 
+	private bool RunningAnim = false;
+	private bool SprintingAnim = false;
+
+
 	public float baseSpeed = 5f;
 	public float baseJumpPower = 10f;
 
+	[SerializeField] float seekerSpeed = 6f;
+	[SerializeField] float hiderSpeed = 5f;
+	[SerializeField] float seekerSprintSpeed = 8f;
+	[SerializeField] float hiderSprintSpeed = 7f;
 	private float speed;
 	private float jumpPower;
 
@@ -76,6 +86,12 @@ public class PlayerController : MonoBehaviour
 
 	void Start()
 	{
+        if (PV.IsMine)
+        {
+            animator = transform.Find("Capsule/Model").GetComponent<Animator>();
+            //Debug.Log("Animator enabled: " + animator.enabled);
+            //Debug.Log("Animation Controller: " + animator.runtimeAnimatorController);
+        }
 		jumpPower = jumpForce;
 		speed = baseSpeed;
 		jumpPower = baseJumpPower;
@@ -103,8 +119,13 @@ public class PlayerController : MonoBehaviour
 		float distance = 1f;
 		Vector3 dir = new Vector3(0, -1);
 
+		Debug.Log("Move amount: " + moveAmount.magnitude); 
+		
+
 		if (!PV.IsMine)
 			return;
+
+		UpdateAnimationState();
 
 		if (canLook)
 		{
@@ -122,21 +143,44 @@ public class PlayerController : MonoBehaviour
 		}
 
 		Renderer modelRenderer = transform.Find("Capsule/Model/default").GetComponent<Renderer>();
-		if (PV.IsMine) 
+		if (PV.IsMine)
 		{
-			if (roleManager.isSeeker && !wasSeeker)
+			if (roleManager.isSeeker)
 			{
-				ChangeColor(Color.red);
-				StartCoroutine(Stun(3.0f));
-				isStunned = true;
+				speed = seekerSpeed;
+				sprintSpeed = seekerSprintSpeed;
+				if (!wasSeeker)
+				{
+					ChangeColor(Color.red);
+					StartCoroutine(Stun(3.0f));
+					isStunned = true;
+					//Debug.Log($"Player is Seeker. Speed: {speed}, Sprint Speed: {sprintSpeed}");
+				}
 			}
-			else if (!roleManager.isSeeker)
+			else
 			{
+				speed = hiderSpeed;
+				sprintSpeed = hiderSprintSpeed;
 				ChangeColor(Color.blue);
+				//Debug.Log($"Player is Hider. Speed: {speed}, Sprint Speed: {sprintSpeed}");
 			}
 			wasSeeker = roleManager.isSeeker;
 		}
-		wasSeeker = roleManager.isSeeker;
+		//if (PV.IsMine) 
+		//{
+		//	if (roleManager.isSeeker && !wasSeeker)
+		//	{
+		//		ChangeColor(Color.red);
+		//		StartCoroutine(Stun(3.0f));
+		//		isStunned = true;
+		//	}
+		//	else if (!roleManager.isSeeker)
+		//	{
+		//		ChangeColor(Color.blue);
+		//	}
+		//	wasSeeker = roleManager.isSeeker;
+		//}
+		//wasSeeker = roleManager.isSeeker;
 
 		if (Input.GetKeyDown(KeyCode.E) && storedPowerUp.HasValue)
 		{
@@ -192,15 +236,41 @@ public class PlayerController : MonoBehaviour
 			cameraHolder.transform.localEulerAngles = Vector3.left * verticalLookRotation;
 		}
 	}
+	void UpdateAnimationState()
+	{
+		
+		if (moveAmount.magnitude > 6.5f)
+		{
+			animator.SetBool("isSprinting", true);
+			animator.SetBool("isRunning", false);
+
+		}
+		else if (moveAmount.magnitude > 2f)
+		{
+			animator.SetBool("isSprinting", false);
+			animator.SetBool("isRunning", true);
+
+		}
+		else if (moveAmount.magnitude < 2f)
+		{
+			animator.SetBool("isSprinting", false);
+			animator.SetBool("isRunning", false);
+			Debug.Log("Returning to idle state"); 
+		}
+	}
+
 	void Move()
 	{
+		//UpdateAnimationState();
 		if (!canMove || !grounded)
 			return;
 
 		Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
 
-		if (Input.GetKey(KeyCode.LeftShift) && stamina > 0 && moveDir.magnitude > 0)
+		if (Input.GetKey(KeyCode.LeftShift) && stamina > 0 && moveDir.magnitude > 0 && Input.GetKey(KeyCode.W))
 		{
+			SprintingAnim = true;
+			RunningAnim = false;
 			moveAmount = Vector3.SmoothDamp(moveAmount, moveDir * sprintSpeed, ref smoothMoveVelocity, smoothTime);
 			stamina -= staminaDepletionRate * Time.deltaTime;
 			stamina = Mathf.Clamp(stamina, 0, maxStamina);
@@ -208,6 +278,8 @@ public class PlayerController : MonoBehaviour
 		}
 		else
 		{
+			SprintingAnim = false;
+			RunningAnim = true;
 			moveAmount = Vector3.SmoothDamp(moveAmount, moveDir * speed, ref smoothMoveVelocity, smoothTime);
 		}
 	}
