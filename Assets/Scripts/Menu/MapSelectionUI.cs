@@ -20,20 +20,25 @@ public class MapSelectionUI : MonoBehaviourPunCallbacks
             Debug.LogError("MapSelector instance is null!");
             return;
         }
-        UpdateButtonInteractivity();
-        previousButton.interactable = PhotonNetwork.IsMasterClient;
-        nextButton.interactable = PhotonNetwork.IsMasterClient;
 
-        if (PhotonNetwork.IsMasterClient) // If master client, initialize selection
+        UpdateButtonInteractivity();
+
+        if (PhotonNetwork.IsMasterClient)
         {
             int defaultMapIndex = 0;
             mapSelector.SelectMap(defaultMapIndex);
             mapNameText.text = mapSelector.mapNames[defaultMapIndex];
         }
+        else
+        {
+            int existingMapIndex = (int)PhotonNetwork.CurrentRoom.CustomProperties["selectedMapIndex"];
+            mapNameText.text = mapSelector.mapNames[existingMapIndex];
+        }
 
         previousButton.onClick.AddListener(OnPreviousButtonClicked);
         nextButton.onClick.AddListener(OnNextButtonClicked);
     }
+
     private void UpdateButtonInteractivity()
     {
         bool isMaster = PhotonNetwork.IsMasterClient;
@@ -42,7 +47,6 @@ public class MapSelectionUI : MonoBehaviourPunCallbacks
     }
     private void OnPreviousButtonClicked()
     {
-        // Decrease index and wrap around if necessary
         int newIndex = (int)PhotonNetwork.CurrentRoom.CustomProperties["selectedMapIndex"] - 1;
         if (newIndex < 0) newIndex = mapSelector.mapNames.Count - 1;
 
@@ -51,14 +55,12 @@ public class MapSelectionUI : MonoBehaviourPunCallbacks
 
     private void OnNextButtonClicked()
     {
-        // Increase index and wrap around if necessary
         int newIndex = (int)PhotonNetwork.CurrentRoom.CustomProperties["selectedMapIndex"] + 1;
         if (newIndex >= mapSelector.mapNames.Count) newIndex = 0;
 
         mapSelector.SelectMap(newIndex);
     }
 
-    // Called when custom properties are updated
     public override void OnRoomPropertiesUpdate(ExitGames.Client.Photon.Hashtable propertiesThatChanged)
     {
         if (propertiesThatChanged.ContainsKey("selectedMapIndex"))

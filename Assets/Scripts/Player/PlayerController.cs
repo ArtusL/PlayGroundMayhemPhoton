@@ -20,6 +20,7 @@ public class PlayerController : MonoBehaviour
 	private bool canLook = true;
 	private bool wasSeeker = false;
 	private Vector3 storedVelocity;
+	private Vector3 jumpVelocity;
 
 	public float baseSpeed = 5f;
 	public float baseJumpPower = 10f;
@@ -84,21 +85,24 @@ public class PlayerController : MonoBehaviour
 			Destroy(rb);
 		}
 	}
+	private void ChangeColor(Color color)
+	{
+		PV.RPC("UpdateColor", RpcTarget.AllBuffered, color.r, color.g, color.b);
+	}
 
+	[PunRPC]
+	private void UpdateColor(float r, float g, float b)
+	{
+		Debug.Log($"UpdateColor RPC called with r={r}, g={g}, b={b}");
+		Renderer modelRenderer = transform.Find("Capsule/Model/default").GetComponent<Renderer>();
+		modelRenderer.material.color = new Color(r, g, b);
+	}
 	void Update()
 	{
 		RaycastHit hit;
 		float distance = 1f;
 		Vector3 dir = new Vector3(0, -1);
 
-		//grounded = Physics.Raycast(transform.position, dir, out hit, distance);
-		//Debug.Log("Grounded: " + grounded);
-		//if (!PV.IsMine || !canLook)
-		//	return;
-
-		//Look();
-		//Move();
-		//Jump();
 		if (!PV.IsMine)
 			return;
 
@@ -117,15 +121,20 @@ public class PlayerController : MonoBehaviour
 			rb.velocity = storedVelocity;
 		}
 
-		if (roleManager.isSeeker && !wasSeeker)
+		Renderer modelRenderer = transform.Find("Capsule/Model/default").GetComponent<Renderer>();
+		if (PV.IsMine) 
 		{
-			GetComponentInChildren<Renderer>().material.color = Color.red;
-			StartCoroutine(Stun(3.0f));
-			isStunned = true;
-		}
-		else if(!roleManager.isSeeker)
-		{
-			GetComponentInChildren<Renderer>().material.color = Color.blue;
+			if (roleManager.isSeeker && !wasSeeker)
+			{
+				ChangeColor(Color.red);
+				StartCoroutine(Stun(3.0f));
+				isStunned = true;
+			}
+			else if (!roleManager.isSeeker)
+			{
+				ChangeColor(Color.blue);
+			}
+			wasSeeker = roleManager.isSeeker;
 		}
 		wasSeeker = roleManager.isSeeker;
 
@@ -183,10 +192,9 @@ public class PlayerController : MonoBehaviour
 			cameraHolder.transform.localEulerAngles = Vector3.left * verticalLookRotation;
 		}
 	}
-
 	void Move()
 	{
-		if (!canMove)
+		if (!canMove || !grounded)
 			return;
 
 		Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
@@ -197,16 +205,10 @@ public class PlayerController : MonoBehaviour
 			stamina -= staminaDepletionRate * Time.deltaTime;
 			stamina = Mathf.Clamp(stamina, 0, maxStamina);
 			regenTimer = 0;
-			//Debug.Log("Sprinting current stamina: " + stamina); 
 		}
 		else
 		{
 			moveAmount = Vector3.SmoothDamp(moveAmount, moveDir * speed, ref smoothMoveVelocity, smoothTime);
-
-			if (stamina < maxStamina)
-			{
-				//Debug.Log("Regenerating stamina current stamina: " + stamina);
-			}
 		}
 	}
 
@@ -214,6 +216,7 @@ public class PlayerController : MonoBehaviour
 	{
 		if (Input.GetKeyDown(KeyCode.Space) && grounded)
 		{
+			jumpVelocity = moveAmount; 
 			Debug.Log("Jump triggered");
 			rb.AddForce(transform.up * jumpForce);
 		}
@@ -229,16 +232,18 @@ public class PlayerController : MonoBehaviour
 	{
 		if (!PV.IsMine)
 			return;
-
-		if (canMove)
+		if (canMove && grounded)
 		{
 			rb.MovePosition(rb.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
+		}
+		else if (!grounded)
+		{
+			rb.MovePosition(rb.position + transform.TransformDirection(jumpVelocity) * Time.fixedDeltaTime);
 		}
 		else
 		{
 			rb.velocity = storedVelocity;
 		}
-		//rb.MovePosition(rb.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
 	}
 
 	public void StorePowerUp(PowerUp powerUp, float multiplier, float duration)
