@@ -8,7 +8,7 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
 {
     public EndGamePanel endGamePanel;
 
-    public float gameDuration = 15f;  
+    private float gameDuration;  
     private float timer;
     private bool gameIsOver = false;
     public TextMeshProUGUI endGameText; 
@@ -29,9 +29,16 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     void Start()
     {
+
         if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("gameDuration"))
         {
-            gameDuration = (float)PhotonNetwork.CurrentRoom.CustomProperties["gameDuration"];
+            gameDuration = (int)PhotonNetwork.CurrentRoom.CustomProperties["gameDuration"];
+            Debug.Log("Game Duration Loaded: " + gameDuration);
+        }
+        else
+        {
+            Debug.LogError("gameDuration key not found in custom properties.");
+            // You can assign a default value here if needed
         }
 
         if (PhotonNetwork.IsMasterClient)
@@ -47,7 +54,6 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         StartGame();
     }
-
 
     void Update()
     {
@@ -121,12 +127,12 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
         endGameText.text = "";
         endGameText.gameObject.SetActive(false);
     }
-    public void RestartGame()
-    {
-        gameIsOver = false;
-        timer = gameDuration;
-        endGameText.gameObject.SetActive(false); 
+    //public void RestartGame()
+    //{
+    //    gameIsOver = false;
+    //    timer = gameDuration;
+    //    endGameText.gameObject.SetActive(false); 
 
-        EndGamePanel.Instance.Hide();
-    }
+    //    EndGamePanel.Instance.Hide();
+    //}
 }

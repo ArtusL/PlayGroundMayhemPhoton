@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+	public AudioManager audioManager;
 	public PlayerRoleManager roleManager;
 
 	[SerializeField] GameObject cameraHolder;
@@ -82,6 +83,7 @@ public class PlayerController : MonoBehaviour
 		rb = GetComponent<Rigidbody>();
 		PV = GetComponent<PhotonView>();
 		roleManager = GetComponent<PlayerRoleManager>();
+		audioManager = GetComponent<AudioManager>();
 	}
 
 	void Start()
@@ -109,7 +111,6 @@ public class PlayerController : MonoBehaviour
 	[PunRPC]
 	private void UpdateColor(float r, float g, float b)
 	{
-		Debug.Log($"UpdateColor RPC called with r={r}, g={g}, b={b}");
 		Renderer modelRenderer = transform.Find("Capsule/Model/default").GetComponent<Renderer>();
 		modelRenderer.material.color = new Color(r, g, b);
 	}
@@ -119,13 +120,14 @@ public class PlayerController : MonoBehaviour
 		float distance = 1f;
 		Vector3 dir = new Vector3(0, -1);
 
-		Debug.Log("Move amount: " + moveAmount.magnitude); 
+		//Debug.Log("Move amount: " + moveAmount.magnitude); 
 		
 
 		if (!PV.IsMine)
 			return;
 
 		UpdateAnimationState();
+		UpdateAudio();
 
 		if (canLook)
 		{
@@ -166,21 +168,6 @@ public class PlayerController : MonoBehaviour
 			}
 			wasSeeker = roleManager.isSeeker;
 		}
-		//if (PV.IsMine) 
-		//{
-		//	if (roleManager.isSeeker && !wasSeeker)
-		//	{
-		//		ChangeColor(Color.red);
-		//		StartCoroutine(Stun(3.0f));
-		//		isStunned = true;
-		//	}
-		//	else if (!roleManager.isSeeker)
-		//	{
-		//		ChangeColor(Color.blue);
-		//	}
-		//	wasSeeker = roleManager.isSeeker;
-		//}
-		//wasSeeker = roleManager.isSeeker;
 
 		if (Input.GetKeyDown(KeyCode.E) && storedPowerUp.HasValue)
 		{
@@ -236,6 +223,46 @@ public class PlayerController : MonoBehaviour
 			cameraHolder.transform.localEulerAngles = Vector3.left * verticalLookRotation;
 		}
 	}
+	void UpdateAudio()
+	{
+		bool isRunning = grounded && Input.GetKey(KeyCode.W) && !Input.GetKey(KeyCode.LeftShift);
+		bool isSprinting = grounded && Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.LeftShift);
+
+		if (isRunning)
+		{
+			if (!audioManager.IsPlayingLocalRunSound())
+			{
+				audioManager.StopLocalSprintSound();
+				audioManager.PlayLocalRunSound();
+				audioManager.photonView.RPC("PlayRunSound", RpcTarget.Others);
+
+				audioManager.photonView.RPC("StopSprintSound", RpcTarget.Others);
+			}
+		}
+		if (isSprinting)
+		{
+			if (!audioManager.IsPlayingLocalSprintSound())
+			{
+				audioManager.PlayLocalSprintSound();
+				audioManager.photonView.RPC("PlaySprintSound", RpcTarget.Others);
+				audioManager.StopLocalRunningSound();
+				audioManager.photonView.RPC("StopRunningSound", RpcTarget.Others);
+			}
+		}
+		
+        else if (!isRunning&&!isSprinting)
+        {
+            if (audioManager.IsPlayingLocalRunSound() || audioManager.IsPlayingLocalSprintSound())
+            {
+                audioManager.StopLocalRunningSound();
+                audioManager.StopLocalSprintSound();
+                audioManager.photonView.RPC("StopSprintSound", RpcTarget.Others);
+                audioManager.photonView.RPC("StopRunningSound", RpcTarget.Others);
+            }
+        }
+    }
+
+
 	void UpdateAnimationState()
 	{
 		
@@ -243,19 +270,16 @@ public class PlayerController : MonoBehaviour
 		{
 			animator.SetBool("isSprinting", true);
 			animator.SetBool("isRunning", false);
-
 		}
 		else if (moveAmount.magnitude > 2f)
 		{
 			animator.SetBool("isSprinting", false);
 			animator.SetBool("isRunning", true);
-
 		}
 		else if (moveAmount.magnitude < 2f)
 		{
 			animator.SetBool("isSprinting", false);
 			animator.SetBool("isRunning", false);
-			Debug.Log("Returning to idle state"); 
 		}
 	}
 
@@ -297,8 +321,8 @@ public class PlayerController : MonoBehaviour
 	public void SetGroundedState(bool _grounded)
 	{
 		grounded = _grounded;
-		Debug.Log("Grounded state set: " + grounded);
-	}
+        //Debug.Log("Grounded state set: " + grounded);
+    }
 
 	void FixedUpdate()
 	{
@@ -346,9 +370,17 @@ public class PlayerController : MonoBehaviour
 		IsPowerUpActive = true;
 		float originalSpeed = speed;
 		float originalSprintSpeed = sprintSpeed;
+		float originalSeekerSpeed = seekerSpeed;
+		float originalSeekerSprintSpeed = seekerSprintSpeed;
+		float originalHiderSpeed = hiderSpeed;
+		float originalHiderSprintSpeed = hiderSprintSpeed;
 
 		speed *= multiplier;
 		sprintSpeed *= multiplier;
+		hiderSpeed *= multiplier;
+		hiderSprintSpeed *= multiplier;
+		seekerSpeed *= multiplier;
+		seekerSprintSpeed *= multiplier;
 
 		Debug.Log("Player speed after boost: " + speed + ", Sprint speed after boost: " + sprintSpeed);
 
@@ -356,6 +388,10 @@ public class PlayerController : MonoBehaviour
 
 		speed = originalSpeed;
 		sprintSpeed = originalSprintSpeed;
+		hiderSpeed= originalHiderSpeed;
+		hiderSprintSpeed = originalHiderSprintSpeed;
+		seekerSpeed = originalSeekerSpeed;
+		seekerSprintSpeed = originalSeekerSprintSpeed;
 
 		IsPowerUpActive = false;
 		activePowerUp = PowerUp.None;
@@ -459,18 +495,26 @@ public class PlayerController : MonoBehaviour
 	public void PushOtherPlayer(float pushForce)
 	{
 		RaycastHit hit;
-		if (Physics.Raycast(transform.position, transform.forward, out hit, 2f)) 
+		if (Physics.Raycast(cameraHolder.transform.position, cameraHolder.transform.forward, out hit, 10f))
 		{
-			PlayerController otherPlayer = hit.transform.GetComponent<PlayerController>();
-			if (otherPlayer != null && otherPlayer != this)
+			if (hit.collider.CompareTag("Player"))
 			{
-				Rigidbody otherPlayerRb = otherPlayer.GetComponent<Rigidbody>();
-				if (otherPlayerRb != null)
+				PlayerController playerController = hit.collider.GetComponent<PlayerController>();
+				if (playerController != null)
 				{
-					otherPlayerRb.AddForce(transform.forward * pushForce, ForceMode.Impulse);
+					Vector3 direction = hit.collider.transform.position - transform.position;
+					direction.Normalize();
+
+					playerController.Push(direction, pushForce);
 				}
 			}
 		}
+
+	}
+
+	public void Push(Vector3 direction, float force)
+	{
+		rb.AddForce(direction * force);
 	}
 }
 

@@ -36,44 +36,42 @@ public class EndGamePanel : MonoBehaviourPunCallbacks
         gameObject.SetActive(false);
     }
 
-    public void RestartGame()
-    {
-        GameManager.Instance.RestartGame();
-
-        if (PhotonNetwork.IsMasterClient)
-        {
-            Vector3 spawnPosition = Vector3.zero;
-            PlayerRoleManager[] players = FindObjectsOfType<PlayerRoleManager>();
-            foreach (PlayerRoleManager player in players)
-            {
-                player.photonView.RPC("ResetRoleAndPosition", RpcTarget.AllBuffered, spawnPosition);
-            }
-        }
-    }
-
-    //public void QuitGame()
+    //public void RestartGame()
     //{
-    //    if (PhotonNetwork.InRoom)
-    //    {
-    //        Debug.Log("Attempting to leave room...");
-    //        PhotonNetwork.LeaveRoom(); // Leave the room
-    //    }
+    //    GameManager.Instance.RestartGame();
 
-    //    try
+    //    if (PhotonNetwork.IsMasterClient)
     //    {
-    //        Debug.Log("Attempting to load main menu...");
-    //        SceneManager.LoadScene("MainMenu");
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        Debug.LogError("Error loading main menu scene: " + e);
+    //        Vector3 spawnPosition = Vector3.zero;
+    //        PlayerRoleManager[] players = FindObjectsOfType<PlayerRoleManager>();
+    //        foreach (PlayerRoleManager player in players)
+    //        {
+    //            player.photonView.RPC("ResetRoleAndPosition", RpcTarget.AllBuffered, spawnPosition);
+    //        }
     //    }
     //}
     public void QuitGame()
     {
-        Launcher.Instance.LeaveRoom();
+        if (PhotonNetwork.InRoom)
+        {
+            Debug.Log("Leaving room...");
+            PhotonNetwork.LeaveRoom(); 
+        }
+        else
+        {
+            Debug.Log("Not in a room. Returning to main menu...");
+            PhotonNetwork.LoadLevel("Main Menu");
+        }
+         if (RoomManager.Instance != null)
+    {
+        Destroy(RoomManager.Instance.gameObject);
+    }
     }
 
+    public override void OnLeftRoom()
+    {
+        PhotonNetwork.LoadLevel("MainMenu");
+    }
 
     public void HidePanel()
     {

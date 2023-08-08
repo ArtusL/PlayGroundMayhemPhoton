@@ -4,11 +4,14 @@ using TMPro;
 using System.Collections.Generic;
 using Photon.Realtime;
 using System.Linq;
+using System.Collections;
 
 public class Launcher : MonoBehaviourPunCallbacks
 {
     public static Launcher Instance;
+    public GameDurationUI gameDurationUI;
 
+    [SerializeField] NonNetworkAudio nonNetworkAudio;
     [SerializeField] TMP_InputField roomNameInputField;
     [SerializeField] TMP_Text errorText;
     [SerializeField] TMP_Text RoomNameText;
@@ -18,22 +21,25 @@ public class Launcher : MonoBehaviourPunCallbacks
     [SerializeField] GameObject PlayerListPrefab;
     [SerializeField] GameObject StartGameButton;
 
+    private bool isConnectingToMaster;
 
     void Awake()
     {
-        if (Instance)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        DontDestroyOnLoad(gameObject);
         Instance = this;
+        
     }
     void Start()
     {
         Debug.Log("Connecting to Master");
         PhotonNetwork.ConnectUsingSettings();
+        if (nonNetworkAudio != null)
+        {
+            nonNetworkAudio.PlayMainMenuMusic();
+        }
+        else
+        {
+            Debug.LogError("NonNetworkAudio not assigned!");
+        }
     }
 
     public override void OnConnectedToMaster()
@@ -47,6 +53,14 @@ public class Launcher : MonoBehaviourPunCallbacks
     {
         MenuManager.Instance.OpenMenu("MainMenu");
         Debug.Log("Joined Lobby");
+        //if (nonNetworkAudio != null)
+        //{
+        //    nonNetworkAudio.PlayMainMenuMusic();
+        //}
+        //else
+        //{
+        //    Debug.LogError("NonNetworkAudio not assigned!");
+        //}
     }
 
     public void CreateRoom()
@@ -76,6 +90,7 @@ public class Launcher : MonoBehaviourPunCallbacks
         }
 
         StartGameButton.SetActive(PhotonNetwork.IsMasterClient);
+
     }
 
     public override void OnMasterClientSwitched(Player newMasterClient)
@@ -90,34 +105,56 @@ public class Launcher : MonoBehaviourPunCallbacks
 
     public void StartGame()
     {
-        PhotonNetwork.LoadLevel(1);
+        StartCoroutine(SaveDurationAndStartGame());
     }
 
-    public void LeaveRoom()
+    private IEnumerator SaveDurationAndStartGame()
     {
-        if (PhotonNetwork.InRoom)
+        gameDurationUI.SaveGameDuration();
+        yield return new WaitForSeconds(0.5f);
+        PhotonNetwork.LoadLevel(1);
+
+        if (nonNetworkAudio != null)
         {
-            PhotonNetwork.LeaveRoom();
-            MenuManager.Instance.OpenMenu("Loading");
+            nonNetworkAudio.StopMusic();
         }
     }
-
     public void JoinRoom(RoomInfo info)
     {
         PhotonNetwork.JoinRoom(info.Name);
         MenuManager.Instance.OpenMenu("Loading");
     }
+    public void LeaveRoom()
+    {
+        Debug.Log("Leaving room...");
+        PhotonNetwork.LeaveRoom();
+        MenuManager.Instance.OpenMenu("Loading");
+        Destroy(RoomManager.Instance.gameObject);
+    }
     public override void OnLeftRoom()
     {
+        Debug.Log("Left room successfully.");
         MenuManager.Instance.OpenMenu("MainMenu");
     }
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
+        if (roomListContent == null)
+        {
+            Debug.LogError("roomListContent is null. Cannot update room list.");
+            return;
+        }
+
         foreach (Transform trans in roomListContent)
         {
+            if (trans == null)
+            {
+                Debug.LogError("Child of roomListContent is null. Skipping...");
+                continue;
+            }
             Destroy(trans.gameObject);
         }
+
         for (int i = 0; i < roomList.Count; i++)
         {
             if (roomList[i].RemovedFromList)
@@ -125,6 +162,8 @@ public class Launcher : MonoBehaviourPunCallbacks
             Instantiate(RoomListPrefab, roomListContent).GetComponent<RoomListItem>().SetUp(roomList[i]);
         }
     }
+
+
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {

@@ -51,6 +51,12 @@ MonoBehaviour:
   - StunAllExceptUser
   - ChangeColorRPC
   - UpdateColor
+  - PlayPowerupPickupSound
+  - PlayPowerupUseSound
+  - PlayRunSound
+  - PlaySprintSound
+  - StopRunningSound
+  - StopSprintSound
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

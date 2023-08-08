@@ -18,17 +18,12 @@ public class SpawnManager : MonoBehaviour
     {
         spawnPoints.Clear(); 
         spawnPoints.AddRange(activeMap.GetComponentsInChildren<SpawnPoint>(true)); 
-
-        foreach (var sp in spawnPoints)
-        {
-            Debug.Log("Updated Spawn Point: " + sp.transform.position);
-        }
     }
 
     public Transform GetSpawnPoint()
     {
         Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Count)].transform;
-        Debug.Log("Chosen Spawn Point: " + spawnPoint.position);
+        //Debug.Log("Chosen Spawn Point: " + spawnPoint.position);
         return spawnPoint;
     }
 }
