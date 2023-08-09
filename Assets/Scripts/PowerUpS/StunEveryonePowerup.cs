@@ -18,13 +18,15 @@ public class StunEveryonePowerUp : MonoBehaviour
     {
         Debug.Log("PowerUp Trigger entered by: " + other.name);
         PlayerController playerController = other.gameObject.GetComponentInParent<PlayerController>();
-        if (playerController != null)
+        if (playerController != null && !playerController.HasPowerUp)
         {
+            playerController.PickupPowerUp(); 
             playerController.StorePowerUp(PlayerController.PowerUp.Stun, 0f, 0f);
             Debug.Log("Attempting to destroy power-up object");
             photonView.RPC("DestroyObjectAndRespawn", RpcTarget.MasterClient, photonView.ViewID);
         }
     }
+
 
     [PunRPC]
     public void Pickup(int playerID)

@@ -19,8 +19,9 @@ public class StaminaPowerUp : MonoBehaviour
     {
         Debug.Log("PowerUp Trigger entered by: " + other.name);
         PlayerController playerController = other.gameObject.GetComponentInParent<PlayerController>();
-        if (playerController != null)
+        if (playerController != null && !playerController.HasPowerUp)
         {
+            playerController.PickupPowerUp();
             playerController.StorePowerUp(PlayerController.PowerUp.StaminaRefill, 0f, 0f);
             Debug.Log("Attempting to destroy power-up object");
             photonView.RPC("DestroyObjectAndRespawn", RpcTarget.MasterClient, photonView.ViewID);

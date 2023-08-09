@@ -61,8 +61,14 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
 
     private IEnumerator StartCountdown()
     {
-        countdownInProgress = true; 
+        countdownInProgress = true;
         yield return new WaitForSeconds(1f);
+
+        PlayerController[] playerControllers = FindObjectsOfType<PlayerController>();
+        foreach (PlayerController player in playerControllers)
+        {
+            player.StartCoroutine(player.Stun(3.0f));
+        }
 
         for (int i = 3; i > 0; i--)
         {
@@ -74,10 +80,10 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
 
         countdownText.text = "";
         localAudioManager.PlayBuzzerSound();
-        //localAudioManager.PlayAudienceSound();
         StartGame();
-        countdownInProgress = false; 
+        countdownInProgress = false;
     }
+
 
     void Update()
     {

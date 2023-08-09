@@ -45,6 +45,12 @@ public class PlayerController : MonoBehaviour
 	private float storedMultiplier = 0f;
 	private float storedDuration = 0f;
 	public bool IsPowerUpActive { get; private set; } = false;
+	public bool HasPowerUp { get; private set; } = false;
+
+	public void PickupPowerUp()
+	{
+		HasPowerUp = true;
+	}
 
 	private float stamina = 100f;
 	private float maxStamina = 100f;
@@ -128,7 +134,7 @@ public class PlayerController : MonoBehaviour
 
 		if (!PV.IsMine)
 			return;
-		canMove = gameManager.GameStarted;
+		//canMove = gameManager.GameStarted;
 
 		UpdateAnimationState();
 		UpdateAudio();
@@ -193,6 +199,7 @@ public class PlayerController : MonoBehaviour
 					break;
 			}
 			storedPowerUp = null;
+			HasPowerUp = false;
 		}
 
 		if (!Input.GetKey(KeyCode.LeftShift))
@@ -483,20 +490,21 @@ public class PlayerController : MonoBehaviour
 			if (player != this)
 			{
 				Debug.Log($"Stunning player {player.gameObject.name}.");
-				player.Stun(duration);
+				StartCoroutine(player.Stun(duration));
 			}
 		}
 	}
 
-
 	[PunRPC]
 	public void StunAllExceptUser(int userViewID, float duration)
 	{
+		Debug.Log($"Received RPC to stun all except view ID {userViewID} for {duration} seconds.");
 		if (PV.ViewID != userViewID)
 		{
 			StartCoroutine(Stun(duration));
 		}
 	}
+
 
 	public void RefillStamina()
 	{

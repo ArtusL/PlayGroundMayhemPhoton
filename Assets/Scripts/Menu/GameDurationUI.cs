@@ -12,7 +12,7 @@ public class GameDurationUI : MonoBehaviourPunCallbacks
     private int selectedDuration;
 
     private readonly int maxDuration = 300;
-    private readonly int minDuration = 10;//remember to change back to 60
+    private readonly int minDuration = 60;//remember to change back to 60
 
     private void Start()
     {
@@ -49,7 +49,7 @@ public class GameDurationUI : MonoBehaviourPunCallbacks
     {
         if (selectedDuration > minDuration)
         {
-            selectedDuration -= 10;//same here remember
+            selectedDuration -= 60;//same here remember
             UpdateDurationDisplay();
             SaveGameDuration();
         }
