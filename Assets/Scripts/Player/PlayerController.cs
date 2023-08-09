@@ -7,6 +7,8 @@ public class PlayerController : MonoBehaviour
 {
 	public AudioManager audioManager;
 	public PlayerRoleManager roleManager;
+	private GameManager gameManager;
+
 
 	[SerializeField] GameObject cameraHolder;
 
@@ -88,7 +90,8 @@ public class PlayerController : MonoBehaviour
 
 	void Start()
 	{
-        if (PV.IsMine)
+		gameManager = GameManager.Instance;
+		if (PV.IsMine)
         {
             animator = transform.Find("Capsule/Model").GetComponent<Animator>();
             //Debug.Log("Animator enabled: " + animator.enabled);
@@ -125,6 +128,7 @@ public class PlayerController : MonoBehaviour
 
 		if (!PV.IsMine)
 			return;
+		canMove = gameManager.GameStarted;
 
 		UpdateAnimationState();
 		UpdateAudio();
@@ -434,33 +438,41 @@ public class PlayerController : MonoBehaviour
 		canLook = false;
 		isStunned = true;
 
-		storedVelocity = rb.velocity;
-
-		storedVelocity.x = 0;
-		storedVelocity.z = 0;
-
-		bool wasMovingUpwards = storedVelocity.y > 0;
-
-		rb.useGravity = false;
-
-		rb.velocity = storedVelocity;
-
-		float stunTimer = 0;
-		while (stunTimer < duration)
+		if (rb != null)
 		{
-			if (wasMovingUpwards)
+			storedVelocity = rb.velocity;
+
+			storedVelocity.x = 0;
+			storedVelocity.z = 0;
+
+			bool wasMovingUpwards = storedVelocity.y > 0;
+
+			rb.useGravity = false;
+
+			rb.velocity = storedVelocity;
+
+			float stunTimer = 0;
+			while (stunTimer < duration)
 			{
-				rb.velocity += Physics.gravity * Time.deltaTime * 2;
+				if (rb != null && wasMovingUpwards)
+				{
+					rb.velocity += Physics.gravity * Time.deltaTime * 2;
+				}
+
+				stunTimer += Time.deltaTime;
+				yield return null;
 			}
 
-			stunTimer += Time.deltaTime;
-			yield return null;
+			if (rb != null)
+			{
+				rb.useGravity = true;
+			}
 		}
 
 		canMove = true;
 		canLook = true;
 		isStunned = false;
-		rb.useGravity = true;
+		//rb.useGravity = true;
 	}
 	public void ApplyStunToOthers(float duration)
 	{

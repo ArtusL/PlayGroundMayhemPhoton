@@ -6,18 +6,24 @@ using System.Collections;
 
 public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
 {
+    public LocalAudioManager localAudioManager;
     public EndGamePanel endGamePanel;
+    private bool countdownInProgress = false;
 
     private float gameDuration;  
     private float timer;
     private bool gameIsOver = false;
     public TextMeshProUGUI endGameText; 
     public TextMeshProUGUI timerText;
+    public TextMeshProUGUI countdownText;
     public static GameManager Instance { get; private set; }
 
     public bool GameStarted { get; private set; } = false;
+    public bool GameOver { get; private set; } = false;
+
     private void Awake()
     {
+
         if (Instance != null && Instance != this)
         {
             Destroy(this.gameObject);
@@ -29,7 +35,8 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
     }
     void Start()
     {
-
+        localAudioManager.PlayAudienceSound();
+        StartCoroutine(StartCountdown());
         if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("gameDuration"))
         {
             gameDuration = (int)PhotonNetwork.CurrentRoom.CustomProperties["gameDuration"];
@@ -38,7 +45,6 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
         else
         {
             Debug.LogError("gameDuration key not found in custom properties.");
-            // You can assign a default value here if needed
         }
 
         if (PhotonNetwork.IsMasterClient)
@@ -49,17 +55,44 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
         if (endGameText != null)
             endGameText.gameObject.SetActive(false);
 
-        if (timerText != null)
-            timerText.text = "Time left: " + Mathf.Ceil(timer).ToString();
 
+        //StartGame();
+    }
+
+    private IEnumerator StartCountdown()
+    {
+        countdownInProgress = true; 
+        yield return new WaitForSeconds(1f);
+
+        for (int i = 3; i > 0; i--)
+        {
+            countdownText.text = i.ToString();
+            localAudioManager.PlayCountdownSound();
+
+            yield return new WaitForSeconds(1f);
+        }
+
+        countdownText.text = "";
+        localAudioManager.PlayBuzzerSound();
+        //localAudioManager.PlayAudienceSound();
         StartGame();
+        countdownInProgress = false; 
     }
 
     void Update()
     {
+        if (!GameStarted)
+        {
+            return;
+        }
+
         if (PhotonNetwork.IsMasterClient && !gameIsOver)
         {
             timer -= Time.deltaTime;
+            if (timer <= 3f && timer > 0f && !countdownInProgress)
+            {
+                StartCoroutine(EndCountdown());
+            }
 
             if (timer <= 0f)
             {
@@ -69,20 +102,50 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
             }
         }
 
-        if (timerText != null)
+        if (!countdownInProgress && timerText != null)
         {
             int minutes = Mathf.FloorToInt(timer / 60f);
             int seconds = Mathf.FloorToInt(timer % 60f);
             timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
         }
+        else
+        {
+            timerText.gameObject.SetActive(false); 
+        }
+    }
+
+    private IEnumerator EndCountdown()
+    {
+        countdownInProgress = true;
+        timerText.gameObject.SetActive(false); 
+
+        for (int i = 3; i > 0; i--)
+        {
+            countdownText.text = i.ToString();
+            localAudioManager.PlayCountdownSound();
+
+            yield return new WaitForSeconds(1f);
+        }
+
+        countdownText.text = "";
+        localAudioManager.PlayBuzzerSound();
+
+        countdownInProgress = false;
     }
 
     [PunRPC]
     void EndGame()
     {
         GameStarted = false;
-        PlayerRoleManager[] players = FindObjectsOfType<PlayerRoleManager>();
-        foreach (PlayerRoleManager player in players)
+        GameOver = true;
+
+        PlayerController[] playerControllers = FindObjectsOfType<PlayerController>();
+        foreach (PlayerController player in playerControllers)
+        {
+            player.StartCoroutine(player.Stun(float.MaxValue));
+        }
+        PlayerRoleManager[] roleManagers = FindObjectsOfType<PlayerRoleManager>();
+        foreach (PlayerRoleManager player in roleManagers)
         {
             if (player.isSeeker)
             {
@@ -91,12 +154,14 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
                     endGameText.text = player.photonView.Owner.NickName + " has lost the game";
                     endGameText.gameObject.SetActive(true);
                 }
-                StartCoroutine(LoadMenuAfterDelay(10f));
+                StartCoroutine(LoadMenuAfterDelay(5f));
                 return;
             }
         }
+
         EndGamePanel.Instance.Show();
     }
+
 
     IEnumerator LoadMenuAfterDelay(float delay)
     {
@@ -127,12 +192,4 @@ public class GameManager : MonoBehaviourPunCallbacks, IPunObservable
         endGameText.text = "";
         endGameText.gameObject.SetActive(false);
     }
-    //public void RestartGame()
-    //{
-    //    gameIsOver = false;
-    //    timer = gameDuration;
-    //    endGameText.gameObject.SetActive(false); 
-
-    //    EndGamePanel.Instance.Hide();
-    //}
 }

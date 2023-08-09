@@ -7,7 +7,7 @@ using System;
 
 public class EndGamePanel : MonoBehaviourPunCallbacks
 {
-    public Button restartGameButton;
+    //public Button restartGameButton;
     public Button quitButton;
 
     public static EndGamePanel Instance { get; private set; }
@@ -22,7 +22,6 @@ public class EndGamePanel : MonoBehaviourPunCallbacks
         {
             Instance = this;
         }
-        restartGameButton.gameObject.SetActive(PhotonNetwork.IsMasterClient);
         gameObject.SetActive(false);
     }
 
@@ -36,22 +35,13 @@ public class EndGamePanel : MonoBehaviourPunCallbacks
         gameObject.SetActive(false);
     }
 
-    //public void RestartGame()
-    //{
-    //    GameManager.Instance.RestartGame();
-
-    //    if (PhotonNetwork.IsMasterClient)
-    //    {
-    //        Vector3 spawnPosition = Vector3.zero;
-    //        PlayerRoleManager[] players = FindObjectsOfType<PlayerRoleManager>();
-    //        foreach (PlayerRoleManager player in players)
-    //        {
-    //            player.photonView.RPC("ResetRoleAndPosition", RpcTarget.AllBuffered, spawnPosition);
-    //        }
-    //    }
-    //}
     public void QuitGame()
     {
+        LocalAudioManager localAudioManager = FindObjectOfType<LocalAudioManager>();
+        if (localAudioManager != null)
+        {
+            localAudioManager.GetComponent<AudioSource>().Stop();
+        }
         if (PhotonNetwork.InRoom)
         {
             Debug.Log("Leaving room...");
@@ -60,12 +50,12 @@ public class EndGamePanel : MonoBehaviourPunCallbacks
         else
         {
             Debug.Log("Not in a room. Returning to main menu...");
-            PhotonNetwork.LoadLevel("Main Menu");
+            PhotonNetwork.LoadLevel("MainMenu");
         }
          if (RoomManager.Instance != null)
-    {
-        Destroy(RoomManager.Instance.gameObject);
-    }
+         {
+             Destroy(RoomManager.Instance.gameObject);
+         }
     }
 
     public override void OnLeftRoom()

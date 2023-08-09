@@ -8,10 +8,10 @@ using System.Collections;
 
 public class Launcher : MonoBehaviourPunCallbacks
 {
+    public LocalAudioManager localAudioManager;
     public static Launcher Instance;
     public GameDurationUI gameDurationUI;
 
-    [SerializeField] NonNetworkAudio nonNetworkAudio;
     [SerializeField] TMP_InputField roomNameInputField;
     [SerializeField] TMP_Text errorText;
     [SerializeField] TMP_Text RoomNameText;
@@ -32,13 +32,13 @@ public class Launcher : MonoBehaviourPunCallbacks
     {
         Debug.Log("Connecting to Master");
         PhotonNetwork.ConnectUsingSettings();
-        if (nonNetworkAudio != null)
+        if (localAudioManager != null)
         {
-            nonNetworkAudio.PlayMainMenuMusic();
+            localAudioManager.PlayMainMenuMusic();
         }
         else
         {
-            Debug.LogError("NonNetworkAudio not assigned!");
+            Debug.LogError("LocalAudioManager not assigned!");
         }
     }
 
@@ -114,11 +114,11 @@ public class Launcher : MonoBehaviourPunCallbacks
         yield return new WaitForSeconds(0.5f);
         PhotonNetwork.LoadLevel(1);
 
-        if (nonNetworkAudio != null)
+        if (localAudioManager != null)
         {
-            nonNetworkAudio.StopMusic();
+            localAudioManager.StopMusic();
         }
-    }
+    } 
     public void JoinRoom(RoomInfo info)
     {
         PhotonNetwork.JoinRoom(info.Name);
