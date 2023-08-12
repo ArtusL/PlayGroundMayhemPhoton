@@ -11,15 +11,7 @@ public class AudioManager : MonoBehaviourPun
     private AudioClip localrunSound;
     [SerializeField]
     private AudioClip localsprintSound;
-    // You can uncomment other sounds as needed
-    //[SerializeField]
-    //private AudioClip jumpSound;
-    //[SerializeField]
-    //private AudioClip landSound;
-    //[SerializeField]
-    //private AudioClip powerupPickupSound;
-    //[SerializeField]
-    //private AudioClip powerupUseSound;
+
 
     private AudioSource audioSource;
 
@@ -27,7 +19,6 @@ public class AudioManager : MonoBehaviourPun
     {
         audioSource = GetComponent<AudioSource>();
 
-        // Make sure each player prefab has an AudioSource component.
         if (!audioSource)
         {
             Debug.LogError("Missing AudioSource component!");
@@ -143,29 +134,4 @@ public class AudioManager : MonoBehaviourPun
     {
         return audioSource.clip == localsprintSound;
     }
-
-    // You can uncomment other sound-playing methods as needed
-    //[PunRPC]
-    //public void PlayJumpSound()
-    //{
-    //    PlaySound(jumpSound);
-    //}
-
-    //[PunRPC]
-    //public void PlayLandSound()
-    //{
-    //    PlaySound(landSound);
-    //}
-
-    //[PunRPC]
-    //public void PlayPowerupPickupSound()
-    //{
-    //    PlaySound(powerupPickupSound);
-    //}
-
-    //[PunRPC]
-    //public void PlayPowerupUseSound()
-    //{
-    //    PlaySound(powerupUseSound);
-    //}
 }

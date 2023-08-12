@@ -17,11 +17,6 @@ public class MenuManager : MonoBehaviour
     {
         for (int i = 0; i < menus.Length; i++)
         {
-            //if (menus[i] == null)
-            //{
-            //    Debug.LogWarning($"MainMenu at index {i} is null!");
-            //    continue; 
-            //}
 
             if (menus[i].menuName == menuName)
             {

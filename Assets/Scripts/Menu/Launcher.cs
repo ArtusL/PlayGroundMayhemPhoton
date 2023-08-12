@@ -53,14 +53,6 @@ public class Launcher : MonoBehaviourPunCallbacks
     {
         MenuManager.Instance.OpenMenu("MainMenu");
         Debug.Log("Joined Lobby");
-        //if (nonNetworkAudio != null)
-        //{
-        //    nonNetworkAudio.PlayMainMenuMusic();
-        //}
-        //else
-        //{
-        //    Debug.LogError("NonNetworkAudio not assigned!");
-        //}
     }
 
     public void CreateRoom()

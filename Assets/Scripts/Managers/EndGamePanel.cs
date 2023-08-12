@@ -7,7 +7,6 @@ using System;
 
 public class EndGamePanel : MonoBehaviourPunCallbacks
 {
-    //public Button restartGameButton;
     public Button quitButton;
 
     public static EndGamePanel Instance { get; private set; }
